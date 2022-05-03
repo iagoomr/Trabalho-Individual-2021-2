@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build the Docker image
+        working-directory: ./aplicacao
+        run: docker build . --file Dockerfile --tag iagoomr
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker compose up
+        working-directory: ./aplicacao
+        run: docker-compose up -d
+      - name: Run test
+        working-directory: ./aplicacao
+        run: docker exec app bash -c "rails db:reset; rspec"
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Docker compose up
+        working-directory: ./aplicacao
+        run: docker-compose up -d
+      - name: Run lint
+        working-directory: ./aplicacao
+        run: docker exec app bash -c "gem install rubocop; rubocop -A --fail-level F"
